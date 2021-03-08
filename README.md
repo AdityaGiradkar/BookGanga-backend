@@ -10,9 +10,9 @@
 
 
 ## Requirements
-**1. Nodejs (v12.0.0 above) -** You can download nodejs from [here](https://nodejs.org/en/)
-**2. NPM -** it will install automatically with Nodejs
-**3. Postman -** for testing purpose - You can download or use online platform
+1. **Nodejs (v12.0.0 above) -** You can download nodejs from [here](https://nodejs.org/en/)
+2. **NPM -** it will install automatically with Nodejs
+3. **Postman -** for testing purpose - You can download or use online platform
 
 ## Installation
 To setup the envornment for code follow bellow steps - (Make sure while performing following steps computer must be connected to Internet.)
