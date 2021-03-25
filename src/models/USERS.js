@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const { ObjectId } = mongoose.Schema.Types;
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
@@ -15,8 +16,14 @@ const userSchema = new mongoose.Schema({
         // required: true,
         trim: true
     },
+    user_name: {
+        type: String,
+        unique: true,
+        trim: true
+    },
     bio: {
-        type: String
+        type: String,
+        default: ""
     },
     avatar: {
         type: Buffer
@@ -121,6 +128,13 @@ userSchema.methods.getPublicProfile = function() {
 
     delete userObject.password;
     delete userObject.tokens;
+    delete userObject.followers;
+    delete userObject.following;
+    delete userObject.list_of_blogs;
+    delete userObject.list_of_reviews;
+    delete userObject.bookshelf;
+    delete userObject.wishlist;
+    delete userObject.taglist;
 
     return userObject
 }
@@ -128,7 +142,7 @@ userSchema.methods.getPublicProfile = function() {
 //change plain password into hash
 userSchema.statics.findByCredentials = async(email, password) => {
     //console.log("abc")
-    const user = await User.findOne({ email: email })
+    const user = await USERS.findOne({ email: email })
 
     if (!user) {
         throw new Error("Unable to login")
@@ -156,11 +170,11 @@ userSchema.pre('save', async function(next) {
 })
 
 //removing all tasks related to to user which is deleting account
-userSchema.pre('remove', async function(next) {
-    const user = this
-    await Task.deleteMany({ owner: user._id })
-    next()
-})
+// userSchema.pre('remove', async function(next) {
+//     const user = this
+//     await Task.deleteMany({ owner: user._id })
+//     next()
+// })
 
 const USERS = mongoose.model('Users', userSchema);
 
