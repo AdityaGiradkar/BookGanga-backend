@@ -1,12 +1,14 @@
 const express = require('express');
 const multer = require('multer'); //to send multipart data like images, files
-// const sharp = require('sharp'); //to resize images
+const sharp = require('sharp'); //to resize images
 const USERS = require('../models/USERS');
+// const FOLLOWING = require('../models/FOLLOWING');
 const authMiddleware = require('../middleware/auth')
 
 
 const router = express.Router()
 
+//create new user
 router.post("/user/create", async(req, res) => {
     const user = new USERS(req.body)
 
@@ -21,12 +23,13 @@ router.post("/user/create", async(req, res) => {
     }
 });
 
+//login in user account
 router.post('/user/login', async(req, res) => {
     // console.log(req.body.email, req.body.password)
     try {
         const user = await USERS.findByCredentials(req.body.email, req.body.password)
         const token = await user.generateToken()
-
+            // console.log(user)
         res.send({ user: user.getPublicProfile(), token: token })
 
         // res.send({ user: user.getPublicProfile() })
@@ -35,7 +38,8 @@ router.post('/user/login', async(req, res) => {
     }
 })
 
-router.post('/user/logout', authMiddleware, async(req, res) => {
+//logout from user account
+router.post('/me/logout', authMiddleware, async(req, res) => {
     try {
         req.user.tokens = req.user.tokens.filter((token) => {
             return token.token !== req.token
@@ -49,83 +53,108 @@ router.post('/user/logout', authMiddleware, async(req, res) => {
     }
 })
 
-// const upload = multer({
-//     // dest: 'avaters',
-//     limits: {
-//         fileSize: 1000000 //1MB   
-//     },
-//     fileFilter(req, file, callBack) {
-//         if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-//             return callBack(new Error('Enter valid image file.'));
-//         }
+//upload profile image
+const upload = multer({
+    // dest: 'avaters',
+    limits: {
+        fileSize: 1000000 //1MB   
+    },
+    fileFilter(req, file, callBack) {
+        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return callBack(new Error('Enter valid image file.'));
+        }
 
-//         callBack(undefined, true);
-//     }
-// });
+        callBack(undefined, true);
+    }
+});
+router.post('/me/avatar', authMiddleware, upload.single('avatar'), async(req, res) => {
+    const buffer = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer();
+    req.user.avatar = buffer
+    await req.user.save()
+    res.status(200).send({ message: 'upload sucess' })
+}, (error, req, res, next) => { //used this function signiture to handel error
+    res.status(400).send({ error: error.message })
+})
 
-// router.post('/user/me/avater', authMiddleware, upload.single('avater'), async(req, res) => {
-//         const buffer = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer();
-//         req.user.avatar = buffer
-//         await req.user.save()
-//         res.status(200).send({ message: 'upload sucess' })
-//     }, (error, req, res, next) => { //used this function signiture to handel error
-//         res.status(400).send({ error: error.message })
-//     })
-// router.get("/users/:id", async(req, res) => {
-//     const id = req.params.id;
+//delete profile pic
+router.delete('/me/avatar', authMiddleware, async(req, res) => {
+    try {
+        req.user.avatar = undefined
+        await req.user.save()
+        res.status(200).send({ message: 'delete sucess' })
+    } catch (err) {
+        res.status(400).send({ message: err.message })
+    }
+})
 
-//     try {
-//         const user = await User.find({ _id: id });
-//         if (!user) {
-//             return res.status(404).send()
-//         } else {
-//             res.send(user);
-//         }
-//     } catch (err) {
-//         res.status(500).send()
-//     }
+//see profile pic of other user
+router.get('/:user/avatar', async(req, res) => {
+    try {
+        const user = await USERS.findOne({ user_name: req.params.user }).select('avatar')
+            // console.log(user.avatar)
+        if (!user || !user.avatar) {
+            throw new Error("no image or user found")
+        }
 
-//     // User.find({ _id: id }).then((user) => {
-//     //     if (!user) {
-//     //         return res.status(404).send()
-//     //     } else {
-//     //         res.send(user);
-//     //     }
-//     // }).catch((err) => {
-//     //     res.status(500).send()
-//     // })
-// })
+        res.set('Content-Type', 'image/png') //set header for response
+        res.send(user.avatar)
+    } catch (err) {
+        console.log(err)
+        res.status(400).send({ message: err.message })
+    }
+})
 
-// //delete profile pic
-// router.delete('/user/me/avater', authMiddleware, async(req, res) => {
+//public profile of any user
+router.get("/:user/publicProfile", async(req, res) => {
+    try {
+        const user = await USERS.findOne({ user_name: req.params.user }).select('bio fname lname user_name email dob createdAt')
+        res.send(user)
+    } catch (err) {
+        res.status(400).send({ message: err.message })
+    }
+})
 
-//     req.user.avatar = undefined
-//     await req.user.save()
-//     res.status(200).send({ message: 'delete sucess' })
-// })
+//get all folowers list
+router.get("/me/followers", authMiddleware, async(req, res) => {
+    try {
+        let followersList = await USERS.findOne({ _id: req.user._id }).populate({ path: 'followers', model: 'Users', select: { '_id': 1, 'user_name': 1 }, }).select('followers -_id')
+        res.send(followersList)
+    } catch (err) {
+        res.status(400).send({ message: err.message })
+    }
+})
 
-// router.get('/user/:id/avater', async(req, res) => {
-//     try {
-//         const user = await User.findById(req.params.id)
+//get all following list
+router.get("/me/following", authMiddleware, async(req, res) => {
+    try {
+        let followingList = await USERS.findOne({ _id: req.user._id }).populate({ path: 'following', model: 'Users', select: { '_id': 1, 'user_name': 1 }, }).select('following -_id')
+        res.send(followingList)
+    } catch (err) {
+        res.status(400).send({ message: err.message })
+    }
+})
 
-//         if (!user || !user.avatar) {
-//             throw new Error()
-//         }
+//Follow new person
+router.patch("/:user_name/follow", authMiddleware, async(req, res) => {
+    try {
+        //add current user to other user's follower list
+        let user = await USERS.findOne({ user_name: req.params.user_name })
+        user.followers = user.followers.concat(req.user._id)
+        await user.save()
 
-//         res.set('Content-Type', 'image/png') //set header for response
-//         res.send(user.avatar)
-//     } catch (err) {
-//         res.status(400).send()
-//     }
-// })
+        //add :user_name to the following list of current user
+        let current_user = await USERS.findOne({ _id: req.user._id })
+        current_user.following = current_user.following.concat(user._id)
+        await current_user.save()
 
-
-// router.get("/usersProfile", async(req, res) => {
-//     res.send(req.user.getPublicProfile())
-// })
+        res.send("Following...")
+    } catch (err) {
+        res.status(400).send({ message: err.message })
+    }
+})
 
 //update user details with specific fields
-router.patch("/user/me", authMiddleware, async(req, res) => {
+router.patch("/me", authMiddleware, async(req, res) => {
 
     //seprate keys of all upadated fields in request body
     const updates = Object.keys(req.body)
@@ -163,7 +192,7 @@ router.patch("/user/me", authMiddleware, async(req, res) => {
 })
 
 //delete user
-router.delete("/user/me", authMiddleware, async(req, res) => {
+router.delete("/me", authMiddleware, async(req, res) => {
     try {
         await req.user.remove()
         res.send(req.user)

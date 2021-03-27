@@ -20,7 +20,7 @@ const bookSchema = new mongoose.Schema({
     rent_price: {
         type: Number,
         default: 0
-    },
+    }
 }, {
     timestamps: true
 });

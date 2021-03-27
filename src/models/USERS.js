@@ -135,11 +135,12 @@ userSchema.methods.getPublicProfile = function() {
     delete userObject.bookshelf;
     delete userObject.wishlist;
     delete userObject.taglist;
+    delete userObject.avatar;
 
     return userObject
 }
 
-//change plain password into hash
+//find user by using credentials 
 userSchema.statics.findByCredentials = async(email, password) => {
     //console.log("abc")
     const user = await USERS.findOne({ email: email })
