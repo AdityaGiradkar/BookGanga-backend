@@ -3,6 +3,10 @@ const validator = require('validator')
 
 
 const reviewSchema = new mongoose.Schema({
+    reviewBy: {
+        type: ObjectId,
+        ref: 'Users'
+    },
     writer: {
         type: ObjectId,
         ref: 'Users'

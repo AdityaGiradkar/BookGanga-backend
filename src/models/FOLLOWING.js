@@ -1,13 +1,14 @@
 const mongoose = require('mongoose')
+const { ObjectId } = mongoose.Schema.Types;
 const validator = require('validator')
 
 
 const followingSchema = new mongoose.Schema({
-    follower: {
+    followedBy: {
         type: ObjectId,
         ref: 'Users'
     },
-    following: {
+    followedTo: {
         type: ObjectId,
         ref: 'Users'
     }

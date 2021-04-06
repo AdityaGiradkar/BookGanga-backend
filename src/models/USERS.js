@@ -3,7 +3,6 @@ const { ObjectId } = mongoose.Schema.Types;
 const validator = require('validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-    // const Task = require('./Task')
 
 const userSchema = new mongoose.Schema({
     fname: {
@@ -43,30 +42,30 @@ const userSchema = new mongoose.Schema({
     dob: {
         type: String
     },
-    followers: {
-        type: [{
-            type: ObjectId,
-            ref: 'Users'
-        }]
-    },
-    following: {
-        type: [{
-            type: ObjectId,
-            ref: 'Users'
-        }]
-    },
+    // followers: {
+    //     type: [{
+    //         type: ObjectId,
+    //         ref: 'Users'
+    //     }]
+    // },
+    // following: {
+    //     type: [{
+    //         type: ObjectId,
+    //         ref: 'Users'
+    //     }]
+    // },
     list_of_blogs: {
         type: [{
             type: ObjectId,
             ref: 'Blogs'
         }]
     },
-    list_of_reviews: {
-        type: [{
-            type: ObjectId,
-            ref: 'Reviews'
-        }]
-    },
+    // list_of_reviews: {
+    //     type: [{
+    //         type: ObjectId,
+    //         ref: 'Reviews'
+    //     }]
+    // },
     bookshelf: {
         type: [{
             type: ObjectId,
@@ -128,10 +127,10 @@ userSchema.methods.getPublicProfile = function() {
 
     delete userObject.password;
     delete userObject.tokens;
-    delete userObject.followers;
-    delete userObject.following;
+    // delete userObject.followers;
+    // delete userObject.following;
     delete userObject.list_of_blogs;
-    delete userObject.list_of_reviews;
+    // delete userObject.list_of_reviews;
     delete userObject.bookshelf;
     delete userObject.wishlist;
     delete userObject.taglist;

@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer'); //to send multipart data like images, files
 const sharp = require('sharp'); //to resize images
 const USERS = require('../models/USERS');
-// const FOLLOWING = require('../models/FOLLOWING');
+const FOLLOWING = require('../models/FOLLOWING');
 const authMiddleware = require('../middleware/auth')
 
 
@@ -19,7 +19,7 @@ router.post("/user/create", async(req, res) => {
         res.status(201).send({ user: user.getPublicProfile(), token: token })
             // res.status(201).send({ user: user.getPublicProfile() })
     } catch (err) {
-        res.status(400).send(err)
+        res.status(400).send(err.message)
     }
 });
 
@@ -116,8 +116,15 @@ router.get("/:user/publicProfile", async(req, res) => {
 
 //get all folowers list
 router.get("/me/followers", authMiddleware, async(req, res) => {
+    // try {
+    //     let followersList = await USERS.findOne({ _id: req.user._id }).populate({ path: 'followers', model: 'Users', select: { '_id': 1, 'user_name': 1 }, }).select('followers -_id')
+    //     res.send(followersList)
+    // } catch (err) {
+    //     res.status(400).send({ message: err.message })
+    // }
+
     try {
-        let followersList = await USERS.findOne({ _id: req.user._id }).populate({ path: 'followers', model: 'Users', select: { '_id': 1, 'user_name': 1 }, }).select('followers -_id')
+        let followersList = await FOLLOWING.find({ followedTo: req.user._id }).populate({ path: 'followedBy', model: 'Users', select: { '_id': 1, 'user_name': 1 } }).select('followedBy -_id')
         res.send(followersList)
     } catch (err) {
         res.status(400).send({ message: err.message })
@@ -127,25 +134,33 @@ router.get("/me/followers", authMiddleware, async(req, res) => {
 //get all following list
 router.get("/me/following", authMiddleware, async(req, res) => {
     try {
-        let followingList = await USERS.findOne({ _id: req.user._id }).populate({ path: 'following', model: 'Users', select: { '_id': 1, 'user_name': 1 }, }).select('following -_id')
+        let followingList = await FOLLOWING.find({ followedBy: req.user._id }).populate({ path: 'followedTo', model: 'Users', select: { '_id': 1, 'user_name': 1 } }).select('followedTo -_id')
+            // let followingList = await FOLLOWING.find({ followedBy: req.user._id }).populate('Users', '_id user_name').select('followedTo -_id')
         res.send(followingList)
     } catch (err) {
         res.status(400).send({ message: err.message })
     }
+
+    // try {
+    //     let followingList = await USERS.findOne({ _id: req.user._id }).populate({ path: 'following', model: 'Users', select: { '_id': 1, 'user_name': 1 }, }).select('following -_id')
+    //     res.send(followingList)
+    // } catch (err) {
+    //     res.status(400).send({ message: err.message })
+    // }
 })
 
 //Follow new person
-router.patch("/:user_name/follow", authMiddleware, async(req, res) => {
+router.post("/:user_name/follow", authMiddleware, async(req, res) => {
     try {
-        //add current user to other user's follower list
-        let user = await USERS.findOne({ user_name: req.params.user_name })
-        user.followers = user.followers.concat(req.user._id)
-        await user.save()
+        if (req.params.user_name === req.user.user_name) {
+            throw new Error("you cannot follow yourself.")
+        }
+        //find user id of Followed user
+        let user = await USERS.findOne({ user_name: req.params.user_name }).select('_id')
 
-        //add :user_name to the following list of current user
-        let current_user = await USERS.findOne({ _id: req.user._id })
-        current_user.following = current_user.following.concat(user._id)
-        await current_user.save()
+        //Add new entry in following collection 
+        const newEntry = new FOLLOWING({ followedBy: req.user._id, followedTo: user })
+        await newEntry.save()
 
         res.send("Following...")
     } catch (err) {
