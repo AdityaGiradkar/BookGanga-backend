@@ -1,14 +1,24 @@
 const mongoose = require('mongoose')
-const validator = require('validator')
+const { ObjectId } = mongoose.Schema.Types;
+const validator = require('validator');
 
 
 const blogSchema = new mongoose.Schema({
     header_image: {
-        type: Buffer
+        type: String,
+        validate(value) {
+            if (!validator.isURL(value)) {
+                throw new Error('Please fill valid URL...')
+            }
+        }
     },
     writer: {
         type: ObjectId,
         ref: 'Users'
+    },
+    tital: {
+        type: String,
+        required: true
     },
     content: {
         type: String
@@ -19,15 +29,6 @@ const blogSchema = new mongoose.Schema({
     time_to_read: {
         type: String
     },
-    publish_date: {
-        type: String
-    },
-    comments: {
-        type: [{
-            type: ObjectId,
-            ref: 'comments'
-        }]
-    },
     tags: {
         type: [{
             type: ObjectId,
@@ -35,10 +36,12 @@ const blogSchema = new mongoose.Schema({
         }]
     },
     likes: {
-        type: Number
+        type: Number,
+        default: 0
     },
     reads: {
-        type: Number
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true

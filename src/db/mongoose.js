@@ -4,6 +4,9 @@ const mongoose = require('mongoose')
 //database password = BookGanga123
 //database name = BookGangaDB
 
+// compass = mongodb+srv://BookGanga:BookGanga123@bookgangadb.anlus.mongodb.net/test
+
+
 const DbUrl = 'mongodb+srv://BookGanga:BookGanga123@bookgangadb.anlus.mongodb.net/BookGangaDB?retryWrites=true&w=majority';
 
 mongoose.connect(DbUrl, {

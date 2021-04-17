@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const { ObjectId } = mongoose.Schema.Types;
 const validator = require('validator')
 
 
@@ -13,7 +14,7 @@ const commentSchema = new mongoose.Schema({
     },
     content: {
         type: String
-    },
+    }
 }, {
     timestamps: true
 });
