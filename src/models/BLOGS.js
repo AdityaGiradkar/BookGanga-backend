@@ -14,25 +14,36 @@ const blogSchema = new mongoose.Schema({
     },
     writer: {
         type: ObjectId,
-        ref: 'Users'
+        ref: 'Users',
+        required: true
     },
     tital: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     content: {
-        type: String
+        type: String,
+        required: true
     },
     description: {
-        type: String
+        type: String,
+        required: true
     },
     time_to_read: {
-        type: String
+        type: String,
+        required: true
     },
     tags: {
         type: [{
             type: ObjectId,
             ref: 'Tags'
+        }]
+    },
+    comments: {
+        type: [{
+            type: ObjectId,
+            ref: 'Comments'
         }]
     },
     likes: {
