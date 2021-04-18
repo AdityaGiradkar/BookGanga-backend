@@ -9,7 +9,8 @@ const bookSchema = new mongoose.Schema({
     },
     author: {
         type: ObjectId,
-        ref: 'Users'
+        ref: 'Users',
+        required: true
     },
     description: {
         type: String
@@ -25,6 +26,7 @@ const bookSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
+
 
 const BOOKS = mongoose.model('Books', bookSchema);
 

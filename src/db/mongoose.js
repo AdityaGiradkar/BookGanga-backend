@@ -8,6 +8,7 @@ const mongoose = require('mongoose')
 
 
 const DbUrl = 'mongodb+srv://BookGanga:BookGanga123@bookgangadb.anlus.mongodb.net/BookGangaDB?retryWrites=true&w=majority';
+//const DbUrl='mongodb://127.0.0.1:27017/BookGanga-DB'
 
 mongoose.connect(DbUrl, {
     useNewUrlParser: true,
