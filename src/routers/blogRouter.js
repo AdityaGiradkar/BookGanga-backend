@@ -10,17 +10,22 @@ const authMiddleware = require('../middleware/auth')
 
 const router = express.Router()
 
-router.post("/blogs/create", async(req, res) => {
+//create new blog
+router.post("/blogs/create", authMiddleware, async(req, res) => {
     const blog = new BLOGS(req.body)
 
     try {
-        await blog.save()
-        res.status(200).send('created..')
+        blog["writer"] = req.user._id;
+        let created_blog = await blog.save()
+        res.status(200).send({ blog: created_blog })
     } catch (err) {
         res.status(400).send(err.message)
     }
 });
 
+
+//get blog's tital header_image likes description for home page
+//:no define how much blog have to skip / last number of blog count
 router.get('/blogs/homeScreen/:no', async(req, res) => {
     try {
         let last_no = parseInt(req.params.no);
@@ -31,6 +36,8 @@ router.get('/blogs/homeScreen/:no', async(req, res) => {
     }
 });
 
+
+//get full details of one perticular blog by using :blog_id
 router.get('/blogs/:blog_id', async(req, res) => {
     try {
         let blog_id = req.params.blog_id;
@@ -41,7 +48,22 @@ router.get('/blogs/:blog_id', async(req, res) => {
     }
 });
 
-router.patch('/blogs/:blog_id', async(req, res) => {
+
+//get all blogs of perticular user
+router.get('/blogs/:user_id/:no', async(req, res) => {
+    try {
+        //console.log(req.user)
+        let last_no = parseInt(req.params.no);
+        let blogs = await BLOGS.find({ writer: req.params.user_id }).sort({ $natural: -1 }).skip(last_no).limit(2).select('tital header_image likes description')
+        res.status(200).send(blogs)
+    } catch (err) {
+        res.status(400).send(err.message)
+    }
+});
+
+
+//edit blog 'tital', 'content', 'description', 'time_to_read', 'tags'
+router.patch('/blogs/:blog_id', authMiddleware, async(req, res) => {
     //seprate keys of all upadated fields in request body
     const updates = Object.keys(req.body)
 
@@ -63,8 +85,7 @@ router.patch('/blogs/:blog_id', async(req, res) => {
 
     try {
         let blog_id = req.params.blog_id
-
-        let blog = BLOG.find({ _id: blog_id });
+        let blog = await BLOGS.findOne({ _id: blog_id, writer: req.user._id });
 
         //do all the update and store in user and then save it
         updates.forEach((update) => {
@@ -76,6 +97,22 @@ router.patch('/blogs/:blog_id', async(req, res) => {
     } catch (err) {
         res.status(400).send(err.message)
     }
-})
+});
+
+
+//delete blog
+router.delete('/blogs/:blog_id', authMiddleware, async(req, res) => {
+
+    try {
+        let deleted_blog = await BLOGS.findOneAndDelete({ _id: req.params.blog_id, writer: req.user._id })
+        if (!deleted_blog) {
+            throw new Error("No blog found for cureent user..")
+        }
+        res.status(200).send({ message: "Blog Deleted" })
+    } catch (err) {
+        res.status(400).send(err.message)
+    }
+});
+
 
 module.exports = router;
