@@ -43,7 +43,7 @@ const blogSchema = new mongoose.Schema({
     comments: {
         type: [{
             type: ObjectId,
-            ref: 'Comments'
+            ref: 'Blog_comments'
         }]
     },
     likes: {

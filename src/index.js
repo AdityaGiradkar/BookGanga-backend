@@ -6,6 +6,7 @@ const userRouter = require('./routers/userRouter')
 const blogRouter = require('./routers/blogRouter')
 const tagRouter = require('./routers/tagRouter')
 const bookRouter = require('./routers/bookRouter')
+const blogCommentRouter = require('./routers/blogCommentRouter')
 
 //modals
 // const User = require('./models/User');
@@ -49,6 +50,7 @@ app.use(userRouter)
 app.use(blogRouter)
 app.use(tagRouter)
 app.use(bookRouter)
+app.use(blogCommentRouter)
 
 //start listning on port specify by server or default 9000
 app.listen(PORT, () => {

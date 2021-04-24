@@ -6,19 +6,22 @@ const validator = require('validator')
 const commentSchema = new mongoose.Schema({
     blog_id: {
         type: ObjectId,
-        ref: 'Blogs'
+        ref: 'Blogs',
+        required: true
     },
-    writer: {
+    comment_writer: {
         type: ObjectId,
-        ref: 'Users'
+        ref: 'Users',
+        required: true
     },
     content: {
-        type: String
+        type: String,
+        required: true
     }
 }, {
     timestamps: true
 });
 
-const COMMENTS = mongoose.model('Comments', commentSchema);
+const COMMENTS = mongoose.model('Blog_comments', commentSchema);
 
 module.exports = COMMENTS;

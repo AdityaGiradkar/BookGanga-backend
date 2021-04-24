@@ -54,12 +54,12 @@ const userSchema = new mongoose.Schema({
     //         ref: 'Users'
     //     }]
     // },
-    list_of_blogs: {
-        type: [{
-            type: ObjectId,
-            ref: 'Blogs'
-        }]
-    },
+    // list_of_blogs: {
+    //     type: [{
+    //         type: ObjectId,
+    //         ref: 'Blogs'
+    //     }]
+    // },
     // list_of_reviews: {
     //     type: [{
     //         type: ObjectId,

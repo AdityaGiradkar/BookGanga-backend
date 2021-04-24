@@ -5,7 +5,7 @@ const USERS = require('../models/USERS');
 const FOLLOWING = require('../models/FOLLOWING');
 const BLOGS = require('../models/BLOGS');
 const TAGS = require('../models/TAGS');
-const COMMENTS = require('../models/COMMENTS');
+const BLOG_COMMENTS = require('../models/BLOG_COMMENTS');
 const authMiddleware = require('../middleware/auth')
 
 const router = express.Router()
@@ -29,7 +29,7 @@ router.post("/blogs/create", authMiddleware, async(req, res) => {
 router.get('/blogs/homeScreen/:no', async(req, res) => {
     try {
         let last_no = parseInt(req.params.no);
-        let blogs = await BLOGS.find().sort({ $natural: -1 }).skip(last_no).limit(2).select('tital header_image likes description')
+        let blogs = await BLOGS.find().sort({ $natural: -1 }).skip(last_no).limit(2).select('tital header_image likes description comments')
         res.status(200).send(blogs)
     } catch (err) {
         res.status(400).send(err.message)
@@ -41,7 +41,19 @@ router.get('/blogs/homeScreen/:no', async(req, res) => {
 router.get('/blogs/:blog_id', async(req, res) => {
     try {
         let blog_id = req.params.blog_id;
-        let blog = await BLOGS.find({ _id: blog_id });
+        let blog = await BLOGS.find({ _id: blog_id }).populate({
+            path: 'comments',
+            model: 'Blog_comments',
+            populate: {
+                path: 'comment_writer',
+                model: 'Users',
+                select: { '_id': 1, 'user_name': 1 }
+            }
+        }).populate({
+            path: 'tags',
+            model: 'Tags',
+            select: { '_id': 1, 'tag_name': 1 }
+        });
         res.status(200).send(blog)
     } catch (err) {
         res.status(400).send(err.message)
@@ -54,7 +66,7 @@ router.get('/blogs/:user_id/:no', async(req, res) => {
     try {
         //console.log(req.user)
         let last_no = parseInt(req.params.no);
-        let blogs = await BLOGS.find({ writer: req.params.user_id }).sort({ $natural: -1 }).skip(last_no).limit(2).select('tital header_image likes description')
+        let blogs = await BLOGS.find({ writer: req.params.user_id }).sort({ $natural: -1 }).skip(last_no).limit(2).select('tital header_image likes description comments')
         res.status(200).send(blogs)
     } catch (err) {
         res.status(400).send(err.message)
