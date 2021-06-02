@@ -26,10 +26,15 @@ router.post("/blogs/create", authMiddleware, async(req, res) => {
 
 //get blog's tital header_image likes description for home page
 //:no define how much blog have to skip / last number of blog count
+//user_profile -id, username, avatar. time of blog 
 router.get('/blogs/homeScreen/:no', async(req, res) => {
     try {
         let last_no = parseInt(req.params.no);
-        let blogs = await BLOGS.find().sort({ $natural: -1 }).skip(last_no).limit(2).select('tital header_image likes description comments')
+        let blogs = await BLOGS.find().sort({ $natural: -1 }).skip(last_no).limit(2).select('tital header_image likes description comments writer').populate({
+            path: 'writer',
+            model: 'Users',
+            select: { '_id': 1, 'user_name': 1, 'avatar': 1 }
+        });
         res.status(200).send(blogs)
     } catch (err) {
         res.status(400).send(err.message)
@@ -38,6 +43,7 @@ router.get('/blogs/homeScreen/:no', async(req, res) => {
 
 
 //get full details of one perticular blog by using :blog_id
+//writter - user_name, id, profile image url pending
 router.get('/blogs/:blog_id', async(req, res) => {
     try {
         let blog_id = req.params.blog_id;
@@ -48,13 +54,18 @@ router.get('/blogs/:blog_id', async(req, res) => {
                 path: 'comment_writer',
                 model: 'Users',
                 select: { '_id': 1, 'user_name': 1 }
-            }
+            },
+            select: { '_id': 1, 'content': 1, 'createdAt': 1, 'comment_writer': 1 }
         }).populate({
             path: 'tags',
             model: 'Tags',
             select: { '_id': 1, 'tag_name': 1 }
+        }).populate({
+            path: 'writer',
+            model: 'Users',
+            select: { '_id': 1, 'user_name': 1, 'avatar': 1 }
         });
-        res.status(200).send(blog)
+        res.status(200).send(blog[0])
     } catch (err) {
         res.status(400).send(err.message)
     }
