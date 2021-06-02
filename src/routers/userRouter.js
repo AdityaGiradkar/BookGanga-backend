@@ -3,7 +3,7 @@ const multer = require('multer'); //to send multipart data like images, files
 const sharp = require('sharp'); //to resize images
 const USERS = require('../models/USERS');
 const FOLLOWING = require('../models/FOLLOWING');
-const authMiddleware = require('../middleware/auth')
+const authMiddleware = require('../middleware/auth');
 
 
 const router = express.Router()

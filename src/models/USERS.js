@@ -82,6 +82,8 @@ const userSchema = new mongoose.Schema({
         type: [{
             type: ObjectId,
             ref: 'Tags'
+        }, {
+            timestamp: true
         }]
     },
     password: {
