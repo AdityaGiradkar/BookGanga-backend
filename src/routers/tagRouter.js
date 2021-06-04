@@ -27,6 +27,7 @@ router.get("/tags/all", async(req, res) => {
     }
 });
 
+// update follower of tag
 router.patch('/tags/:tagId/addFollower', authMiddleware, async(req, res) => {
 
     //seprate keys of all upadated fields in request body
